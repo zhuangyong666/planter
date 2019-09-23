@@ -18,19 +18,19 @@ import java.util.List;
 
 public class LogDaoImpl implements LogDao {
     private static final String namespace = "cn.edu.tjpu.dao.LogDao.";
+
     @Override
-    public List<Log> getLogs() {
+    public void insert(Log log) {
         List<Log> logs = null;
         SqlSession session = MyBatisUtil.getSession();
         try {
-            logs = session.selectList(namespace + "getLogs", Log.class);
+            session.insert(namespace + "insert", log);
             //注意：此处有陷阱，如果做了更新、插入或删除操作，必须使用：
-            //session.commit();
+            session.commit();
         } catch (Exception e) {
             e.printStackTrace();
-        }finally{
+        } finally {
             MyBatisUtil.closeSession(session);
         }
-        return logs;
     }
 }

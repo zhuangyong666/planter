@@ -1,5 +1,7 @@
 package cn.edu.tjpu.utils;
 
+import java.math.BigInteger;
+
 /**
  * <pre>
  * 基本数据类型转换(主要是byte和其它类型之间的互转).
@@ -305,5 +307,50 @@ public class ByteUtils {
         return arr;
     }
 
+    /*
+     * @Description: 16进制转10进制
+     * @author zhuangy
+     * @time 2019/9/21 15:32
+     */
+    public static Integer hexToDecimal(String msg) {
+        return new BigInteger(msg, 16).intValue();
+    }
 
+    /*
+     * @Description: 倒序
+     * @author zhuangy
+     * @time 2019/9/21 17:15
+     */
+    public static String reverse(String oldStr) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = oldStr.length(); i >= 2; i -= 2) {
+            sb.append(oldStr.substring(i - 2, i));
+        }
+        return sb.toString();
+    }
+
+    //byte转为hex串
+    public static String bytes2HexStr(byte[] byteArr) {
+        if (null == byteArr || byteArr.length < 1) return "";
+        StringBuilder sb = new StringBuilder();
+        for (byte t : byteArr) {
+            if ((t & 0xF0) == 0) sb.append("0");
+            sb.append(Integer.toHexString(t & 0xFF));  //t & 0xFF 操作是为去除Integer高位多余的符号位（java数据是用补码表示）
+        }
+        return sb.toString();
+    }
+
+    //hex串转为byte
+    public static byte[] hexStr2Bytes(String hexStr) {
+        if (null == hexStr || hexStr.length() < 1) return null;
+
+        int byteLen = hexStr.length() / 2;
+        byte[] result = new byte[byteLen];
+        char[] hexChar = hexStr.toCharArray();
+        for(int i=0 ;i<byteLen;i++){
+            result[i] = (byte)(Character.digit(hexChar[i*2],16)<<4 | Character.digit(hexChar[i*2+1],16));
+        }
+
+        return result;
+    }
 }

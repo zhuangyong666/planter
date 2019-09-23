@@ -3,18 +3,15 @@ package cn.edu.tjpu.serverhandler;
 import cn.edu.tjpu.dao.LogDao;
 import cn.edu.tjpu.dao.impl.LogDaoImpl;
 import cn.edu.tjpu.pojo.Log;
+import cn.edu.tjpu.utils.ByteUtils;
 import cn.edu.tjpu.utils.IEEE754Util;
-import cn.edu.tjpu.utils.LRCUtil;
-import cn.edu.tjpu.utils.MyBatisUtil;
-import com.sun.xml.internal.fastinfoset.algorithm.IEEE754FloatingPointEncodingAlgorithm;
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufUtil;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 
-import java.io.UnsupportedEncodingException;
+import java.math.BigInteger;
+import java.util.Date;
 import java.util.List;
 
 public class PlanterServerHandler extends ChannelInboundHandlerAdapter {
@@ -45,36 +42,48 @@ public class PlanterServerHandler extends ChannelInboundHandlerAdapter {
     }
 
     /**
-     * @param buf
-     * @return
-     * @author Taowd
-     * 将发过来的10进制数据包解析为16进制
-     * 2017年8月31日 下午7:57:28
-     */
-    private String getMessage(ByteBuf buf) {
-        byte[] con = new byte[buf.readableBytes()];
-        buf.readBytes(con);
-        StringBuilder sb = new StringBuilder();
-        for (byte b : con) {
-            String str = Integer.toHexString(b);
-            /*if (str.startsWith(CLEAR_WORD)) {
-                str = str.substring(6);
-            }*/
-            sb.append(str);
-        }
-        return sb.toString();
-    }
-
-    /**
      * 功能：读取服务器发送过来的信息
      */
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        // 第一种：接收字符串时的处理
-        /*String rev = getMessage(buf);*/
-        String strMsg = (String) msg;
-        LogDao logDao  = new LogDaoImpl();
-        List<Log> logs = logDao.getLogs();
+       /* //接收字符串时的处理
+        String requestParam = (String) msg;
+        //头
+        String head = requestParam.substring(0, 4);
+        //数据包长度
+        int len = ByteUtils.hexToDecimal(requestParam.substring(4, 6));
+        //设备地址
+        String deviceAddress = requestParam.substring(6, 10);
+        //播种数
+        Float seedsNum = IEEE754Util.hexStrToFloat(ByteUtils.reverse(requestParam.substring(10, 18)));
+        //播种面积
+        Float seedsArea = IEEE754Util.hexStrToFloat(ByteUtils.reverse(requestParam.substring(18, 26)));
+        //经度标志
+        String longitudeFlag = new String(ByteUtils.hexStr2Bytes(requestParam.substring(26, 28)));
+        //经度
+        Float longitude = IEEE754Util.hexStrToFloat(ByteUtils.reverse(requestParam.substring(28, 36)));
+        //纬度标志
+        String latitudeFlag = new String(ByteUtils.hexStr2Bytes(requestParam.substring(36, 38)));
+        //纬度
+        Float latitude = IEEE754Util.hexStrToFloat(ByteUtils.reverse(requestParam.substring(38, 46)));
+        //播种机下种状态（0：正常下种，1：下种故障）
+        String state = requestParam.substring(46, 48);
+        //播种机下种故障状态累计
+        String fault = requestParam.substring(48, 52);
+
+        Log log = new Log();
+        log.setMsg(requestParam);
+        log.setMsgLen(len);
+        log.setDeviceAddress(deviceAddress);
+        log.setSeedsNum(seedsNum);
+        log.setSeededArea(seedsArea);
+        log.setPosition(longitudeFlag + " " + longitude + " " + latitudeFlag + " " + latitude);
+        log.setState(state);
+        log.setFault(fault);
+        log.setCreateTime(new Date());
+        LogDao logDao = new LogDaoImpl();
+        logDao.insert(log);*/
+
         System.out.println("客户端收到服务器数据:" + msg);
     }
 
@@ -85,7 +94,7 @@ public class PlanterServerHandler extends ChannelInboundHandlerAdapter {
     public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
         System.out.println("服务端接收数据完毕..");
         // 第一种方法：写一个空的buf，并刷新写出区域。完成后关闭sock channel连接。
-        ctx.writeAndFlush(Unpooled.EMPTY_BUFFER).addListener(ChannelFutureListener.CLOSE);
+        //ctx.writeAndFlush(Unpooled.EMPTY_BUFFER).addListener(ChannelFutureListener.CLOSE);
         // ctx.flush();
         // ctx.flush(); //
         // 第二种方法：在client端关闭channel连接，这样的话，会触发两次channelReadComplete方法。
@@ -99,5 +108,10 @@ public class PlanterServerHandler extends ChannelInboundHandlerAdapter {
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         ctx.close();
         System.out.println("异常信息：\r\n" + cause.getMessage());
+    }
+
+
+    public static void main(String[] args) {
+        System.out.println();
     }
 }

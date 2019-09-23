@@ -1,6 +1,7 @@
 package cn.edu.tjpu.pojo;
 
 import java.io.Serializable;
+import java.util.Date;
 
 /**
  * @author zhuangy
@@ -17,8 +18,27 @@ public class Log implements Serializable {
     private Float seedsNum;
     private Float seededArea;
     private String position;
-    private Integer state;
-    private Integer faultNum;
+    private String state;
+    private String fault;
+    private Date createTime;
+    private String msg;
+    private Integer msgLen;
+
+    public Integer getMsgLen() {
+        return msgLen;
+    }
+
+    public void setMsgLen(Integer msgLen) {
+        this.msgLen = msgLen;
+    }
+
+    public String getMsg() {
+        return msg;
+    }
+
+    public void setMsg(String msg) {
+        this.msg = msg;
+    }
 
     public String getDeviceAddress() {
         return deviceAddress;
@@ -52,20 +72,21 @@ public class Log implements Serializable {
         this.position = position;
     }
 
-    public Integer getState() {
+
+    public String getState() {
         return state;
     }
 
-    public void setState(Integer state) {
+    public void setState(String state) {
         this.state = state;
     }
 
-    public Integer getFaultNum() {
-        return faultNum;
+    public String getFault() {
+        return fault;
     }
 
-    public void setFaultNum(Integer faultNum) {
-        this.faultNum = faultNum;
+    public void setFault(String fault) {
+        this.fault = fault;
     }
 
     public Integer getId() {
@@ -74,5 +95,14 @@ public class Log implements Serializable {
 
     public void setId(Integer id) {
         this.id = id;
+    }
+
+
+    public Date getCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(Date createTime) {
+        this.createTime = createTime;
     }
 }

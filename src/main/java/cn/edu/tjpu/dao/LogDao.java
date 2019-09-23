@@ -14,5 +14,5 @@ import java.util.List;
  **/
 
 public interface LogDao {
-    public List<Log> getLogs();
+    public void insert(Log log);
 }

@@ -7,6 +7,29 @@ import io.netty.handler.codec.ByteToMessageDecoder;
 import java.util.List;
 
 public class MyDecoder extends ByteToMessageDecoder {
+
+    private final int frameLength;
+
+    public MyDecoder(int frameLength) {
+        if (frameLength <= 0) {
+            throw new IllegalArgumentException("frameLength must be a positive integer: " + frameLength);
+        } else {
+            this.frameLength = frameLength;
+        }
+    }
+
+    /*protected final void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
+        Object decoded = this.decode(ctx, in);
+        if (decoded != null) {
+            out.add(decoded);
+        }
+
+    }*/
+
+    protected Object decode(ChannelHandlerContext ctx, ByteBuf in) throws Exception {
+        return in.readableBytes() < this.frameLength ? null : in.readRetainedSlice(this.frameLength);
+    }
+
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf buffer, List<Object> out) throws Exception {
         //创建字节数组,buffer.readableBytes可读字节长度
@@ -14,7 +37,16 @@ public class MyDecoder extends ByteToMessageDecoder {
         //复制内容到字节数组b
         buffer.readBytes(b);
         //字节数组转字符串
-        out.add(bytesToHexString(b));
+        String outStr = bytesToHexString(b);
+        StringBuilder sb = new StringBuilder();
+        if (outStr.contains("47507273")) {
+            /*outStr.replace("47507273", "");*/
+            String[] strArr = outStr.split("47507273");
+            for (String msg : strArr) {
+                sb.append(msg);
+            }
+        }
+        out.add(outStr);
     }
 
     public String bytesToHexString(byte[] bArray) {

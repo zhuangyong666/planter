@@ -12,7 +12,7 @@ public class IEEE754Util {
      * @param a
      * @return String
      */
-    public static String FloatToHex(float a) {
+    public static String floatToHex(float a) {
         int c = Float.floatToIntBits(a);
         return Integer.toHexString(c);
     }
@@ -23,7 +23,7 @@ public class IEEE754Util {
      * @param a
      * @return String
      */
-    public static String DoubleToHex(double a) {
+    public static String doubleToHex(double a) {
         long c = Double.doubleToLongBits(a);
         return Long.toHexString(c);
     }
@@ -34,7 +34,7 @@ public class IEEE754Util {
      * @param a
      * @return double
      */
-    public static double HexToDouble(long a) {
+    public static double hexToDouble(long a) {
         double b = Double.longBitsToDouble(a);
         return b;
     }
@@ -45,7 +45,19 @@ public class IEEE754Util {
      * @param a
      * @return float
      */
-    public static float HexToFloat(int a) {
+    public static float hexToFloat(int a) {
+        float b = Float.intBitsToFloat(a);
+        return b;
+    }
+
+    /**
+     * 从16进制表示转化为IEEE754标准的单精度实数
+     *
+     * @param a
+     * @return float
+     */
+    public static float hexStrToFloat(String hex) {
+        Integer a = Integer.parseInt(hex,16);
         float b = Float.intBitsToFloat(a);
         return b;
     }
