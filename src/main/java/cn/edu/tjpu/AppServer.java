@@ -1,12 +1,9 @@
 package cn.edu.tjpu;
 
 import cn.edu.tjpu.decoder.MyDecoder;
-import cn.edu.tjpu.serverhandler.HeartBeatRespHandler;
 import cn.edu.tjpu.serverhandler.PlanterServerHandler;
 import cn.edu.tjpu.utils.MyBatisUtil;
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
@@ -14,8 +11,6 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.handler.codec.DelimiterBasedFrameDecoder;
-import io.netty.handler.codec.FixedLengthFrameDecoder;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -41,7 +36,7 @@ public class AppServer {
             //等待服务端监听端口关闭
             f.channel().closeFuture().sync();
         } catch (Exception e) {
-           LOGGER.error(e.getMessage(),e);
+            LOGGER.error(e.getMessage(), e);
         } finally {
             //优雅退出，释放线程池资源
             bossGroup.shutdownGracefully();
@@ -52,10 +47,9 @@ public class AppServer {
     private class ChildChannelHandler extends ChannelInitializer<SocketChannel> {
         @Override
         protected void initChannel(SocketChannel socketChannel) throws Exception {
-            ByteBuf delimer = Unpooled.copiedBuffer("$_".getBytes());
-            socketChannel.pipeline().addLast(new MyDecoder(27));
-            //socketChannel.pipeline().addLast(new FixedLengthFrameDecoder(27));
-            socketChannel.pipeline().addLast(new HeartBeatRespHandler());
+            //ByteBuf delimer = Unpooled.copiedBuffer("245F".getBytes());
+            socketChannel.pipeline().addLast(new MyDecoder());
+            //socketChannel.pipeline().addLast(new DelimiterBasedFrameDecoder(1024, delimer));
             socketChannel.pipeline().addLast(new PlanterServerHandler());
         }
     }

@@ -2,19 +2,25 @@ package cn.edu.tjpu.serverhandler;
 
 import cn.edu.tjpu.dao.LogDao;
 import cn.edu.tjpu.dao.impl.LogDaoImpl;
-import cn.edu.tjpu.pojo.Log;
 import cn.edu.tjpu.utils.ByteUtils;
 import cn.edu.tjpu.utils.IEEE754Util;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 public class PlanterServerHandler extends ChannelInboundHandlerAdapter {
+    private static final Log LOGGER = LogFactory.getLog(PlanterServerHandler.class);
+    private LogDao logDao = new LogDaoImpl();
+
     /*
      * channelAction
      *
@@ -46,45 +52,58 @@ public class PlanterServerHandler extends ChannelInboundHandlerAdapter {
      */
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-       /* //接收字符串时的处理
-        String requestParam = (String) msg;
-        //头
-        String head = requestParam.substring(0, 4);
-        //数据包长度
-        int len = ByteUtils.hexToDecimal(requestParam.substring(4, 6));
-        //设备地址
-        String deviceAddress = requestParam.substring(6, 10);
-        //播种数
-        Float seedsNum = IEEE754Util.hexStrToFloat(ByteUtils.reverse(requestParam.substring(10, 18)));
-        //播种面积
-        Float seedsArea = IEEE754Util.hexStrToFloat(ByteUtils.reverse(requestParam.substring(18, 26)));
-        //经度标志
-        String longitudeFlag = new String(ByteUtils.hexStr2Bytes(requestParam.substring(26, 28)));
-        //经度
-        Float longitude = IEEE754Util.hexStrToFloat(ByteUtils.reverse(requestParam.substring(28, 36)));
-        //纬度标志
-        String latitudeFlag = new String(ByteUtils.hexStr2Bytes(requestParam.substring(36, 38)));
-        //纬度
-        Float latitude = IEEE754Util.hexStrToFloat(ByteUtils.reverse(requestParam.substring(38, 46)));
-        //播种机下种状态（0：正常下种，1：下种故障）
-        String state = requestParam.substring(46, 48);
-        //播种机下种故障状态累计
-        String fault = requestParam.substring(48, 52);
+        Map<String, List> messages = (Map) msg;
+        List heartBeatMsgList = messages.get("heartBeatMsgs");
+        // 返回心跳应答消息
+        if (!heartBeatMsgList.isEmpty()) {
+            LOGGER.info("Receive client heart beat message : ---> "
+                    + heartBeatMsgList);
+            ctx.writeAndFlush("pong");
+        } else {
+            ctx.fireChannelRead(msg);
+        }
+        Date now = new Date();
+        List<String> msgList = messages.get("msgs");
+        List<cn.edu.tjpu.pojo.Log> logList = new ArrayList<>();
+        for (String requestParam : msgList) {
+            //接收字符串时的处理
+            //头
+            String head = requestParam.substring(0, 4);
+            //数据包长度
+            int len = ByteUtils.hexToDecimal(requestParam.substring(4, 6));
+            //设备地址
+            String deviceAddress = requestParam.substring(6, 10);
+            //播种数
+            Float seedsNum = IEEE754Util.hexStrToFloat(ByteUtils.reverse(requestParam.substring(10, 18)));
+            //播种面积
+            Float seedsArea = IEEE754Util.hexStrToFloat(ByteUtils.reverse(requestParam.substring(18, 26)));
+            //经度标志
+            String longitudeFlag = new String(ByteUtils.hexStr2Bytes(requestParam.substring(26, 28)));
+            //经度
+            Float longitude = IEEE754Util.hexStrToFloat(ByteUtils.reverse(requestParam.substring(28, 36)));
+            //纬度标志
+            String latitudeFlag = new String(ByteUtils.hexStr2Bytes(requestParam.substring(36, 38)));
+            //纬度
+            Float latitude = IEEE754Util.hexStrToFloat(ByteUtils.reverse(requestParam.substring(38, 46)));
+            //播种机下种状态（0：正常下种，1：下种故障）
+            String state = requestParam.substring(46, 48);
+            //播种机下种故障状态累计
+            String fault = requestParam.substring(48, 52);
 
-        Log log = new Log();
-        log.setMsg(requestParam);
-        log.setMsgLen(len);
-        log.setDeviceAddress(deviceAddress);
-        log.setSeedsNum(seedsNum);
-        log.setSeededArea(seedsArea);
-        log.setPosition(longitudeFlag + " " + longitude + " " + latitudeFlag + " " + latitude);
-        log.setState(state);
-        log.setFault(fault);
-        log.setCreateTime(new Date());
-        LogDao logDao = new LogDaoImpl();
-        logDao.insert(log);*/
-
-        System.out.println("客户端收到服务器数据:" + msg);
+            cn.edu.tjpu.pojo.Log log = new cn.edu.tjpu.pojo.Log();
+            log.setMsg(requestParam);
+            log.setMsgLen(len);
+            log.setDeviceAddress(deviceAddress);
+            log.setSeedsNum(seedsNum);
+            log.setSeededArea(seedsArea);
+            log.setPosition(longitudeFlag + " " + longitude + " " + latitudeFlag + " " + latitude);
+            log.setState(state);
+            log.setFault(fault);
+            log.setCreateTime(now);
+            logDao.insert(log);
+            logList.add(log);
+            System.out.println(now.toString() + "客户端收到服务器数据:" + requestParam);
+        }
     }
 
     /**
