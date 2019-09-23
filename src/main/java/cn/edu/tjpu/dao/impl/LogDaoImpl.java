@@ -20,11 +20,10 @@ public class LogDaoImpl implements LogDao {
     private static final String namespace = "cn.edu.tjpu.dao.LogDao.";
 
     @Override
-    public void insert(Log log) {
-        List<Log> logs = null;
+    public void batchInsertLog(List<Log> logs) {
         SqlSession session = MyBatisUtil.getSession();
         try {
-            session.insert(namespace + "insert", log);
+            session.insert(namespace + "batchInsertLog", logs);
             //注意：此处有陷阱，如果做了更新、插入或删除操作，必须使用：
             session.commit();
         } catch (Exception e) {

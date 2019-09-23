@@ -14,5 +14,5 @@ import java.util.List;
  **/
 
 public interface LogDao {
-    public void insert(Log log);
+    public void batchInsertLog(List<Log> logs);
 }

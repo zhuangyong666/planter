@@ -1,7 +1,10 @@
 package cn.edu.tjpu.serverhandler;
 
+import cn.edu.tjpu.dao.DeviceDao;
 import cn.edu.tjpu.dao.LogDao;
+import cn.edu.tjpu.dao.impl.DeviceDaoImpl;
 import cn.edu.tjpu.dao.impl.LogDaoImpl;
+import cn.edu.tjpu.pojo.Device;
 import cn.edu.tjpu.utils.ByteUtils;
 import cn.edu.tjpu.utils.IEEE754Util;
 import io.netty.buffer.Unpooled;
@@ -20,6 +23,7 @@ import java.util.Map;
 public class PlanterServerHandler extends ChannelInboundHandlerAdapter {
     private static final Log LOGGER = LogFactory.getLog(PlanterServerHandler.class);
     private LogDao logDao = new LogDaoImpl();
+    private DeviceDao deviceDao = new DeviceDaoImpl();
 
     /*
      * channelAction
@@ -53,7 +57,7 @@ public class PlanterServerHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         Map<String, List> messages = (Map) msg;
-        List heartBeatMsgList = messages.get("heartBeatMsgs");
+        List<String> heartBeatMsgList = messages.get("heartBeatMsgs");
         // 返回心跳应答消息
         if (!heartBeatMsgList.isEmpty()) {
             LOGGER.info("Receive client heart beat message : ---> "
@@ -62,6 +66,14 @@ public class PlanterServerHandler extends ChannelInboundHandlerAdapter {
         } else {
             ctx.fireChannelRead(msg);
         }
+        List<Device> deviceList = new ArrayList<>();
+        for (String heartBeatMsg : heartBeatMsgList) {
+            Device device = new Device();
+            device.setDeviceAddress(heartBeatMsg.substring(4,8));
+            device.setState(1);
+            deviceList.add(device);
+        }
+        deviceDao.batchInsertDevice(deviceList);
         Date now = new Date();
         List<String> msgList = messages.get("msgs");
         List<cn.edu.tjpu.pojo.Log> logList = new ArrayList<>();
@@ -100,10 +112,10 @@ public class PlanterServerHandler extends ChannelInboundHandlerAdapter {
             log.setState(state);
             log.setFault(fault);
             log.setCreateTime(now);
-            logDao.insert(log);
             logList.add(log);
             System.out.println(now.toString() + "客户端收到服务器数据:" + requestParam);
         }
+        logDao.batchInsertLog(logList);
     }
 
     /**

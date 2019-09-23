@@ -2,7 +2,11 @@
 <!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
         "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
 <mapper namespace="cn.edu.tjpu.dao.LogDao">
-    <insert id="insert" parameterType="cn.edu.tjpu.pojo.Log">
-        insert into log(msg,msglen,device_address,seeds_num,seeded_area,position,state,fault,createtime) values(#{msg},#{msgLen},#{deviceAddress},#{seedsNum},#{seededArea},#{position},#{state},#{fault},#{createTime})
+    <insert id="batchInsertLog" parameterType="list">
+        insert into log(msg,msglen,device_address,seeds_num,seeded_area,position,state,fault,createtime)
+        values
+        <foreach collection="list" item="log" index="index" separator=",">
+            (#{log.msg},#{log.msgLen},#{log.deviceAddress},#{log.seedsNum},#{log.seededArea},#{log.position},#{log.state},#{log.fault},#{log.createTime})
+        </foreach>
     </insert>
 </mapper>
