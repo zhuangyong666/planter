@@ -69,11 +69,13 @@ public class PlanterServerHandler extends ChannelInboundHandlerAdapter {
         List<Device> deviceList = new ArrayList<>();
         for (String heartBeatMsg : heartBeatMsgList) {
             Device device = new Device();
-            device.setDeviceAddress(heartBeatMsg.substring(4,8));
+            device.setDeviceAddress(heartBeatMsg.substring(4, 8));
             device.setState(1);
             deviceList.add(device);
         }
-        deviceDao.batchInsertDevice(deviceList);
+        if (!deviceList.isEmpty()) {
+            deviceDao.batchInsertDevice(deviceList);
+        }
         Date now = new Date();
         List<String> msgList = messages.get("msgs");
         List<cn.edu.tjpu.pojo.Log> logList = new ArrayList<>();
@@ -115,7 +117,9 @@ public class PlanterServerHandler extends ChannelInboundHandlerAdapter {
             logList.add(log);
             System.out.println(now.toString() + "客户端收到服务器数据:" + requestParam);
         }
-        logDao.batchInsertLog(logList);
+        if (!logList.isEmpty()) {
+            logDao.batchInsertLog(logList);
+        }
     }
 
     /**
